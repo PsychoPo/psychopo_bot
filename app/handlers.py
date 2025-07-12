@@ -2,9 +2,17 @@ from aiogram import F, Router
 from aiogram.filters import CommandStart, Command
 from aiogram.types import Message, CallbackQuery
 
+from aiogram.fsm.state import StatesGroup, State
+from aiogram.fsm.context import FSMContext
+
 import app.keyboards as kb
 
 router = Router()
+
+
+class Reg(StatesGroup):
+    name = State()
+    number = State()
 
 
 @router.message(CommandStart())
@@ -14,7 +22,7 @@ async def cmd_start(message: Message):
 
 @router.message(Command('help'))
 async def get_help(message: Message):
-    await message.answer('Вы воспользовались командой /help!')
+    await message.answer('Вы воспользовались командой /help!\nВы можете воспользоваться /start, /reg, /help.')
 
 
 @router.message(F.text.lower() == 'привет')
@@ -38,3 +46,24 @@ async def about_me(callback: CallbackQuery):
     # await callback.message.answer('Я -- бот созданный PsychoPo!\nЯ нахожусь в разработке, поэтому некоторые мои функции могут не работать!')
     await callback.message.edit_text('Я -- бот созданный PsychoPo!\nЯ нахожусь в разработке, поэтому некоторые мои функции могут не работать!',
                                 reply_markup=await kb.inline_cars())
+
+
+@router.message(Command('reg'))
+async def reg_first(message: Message, state: FSMContext):
+    await state.set_state(Reg.name)
+    await message.answer('Введите ваше имя:')
+
+
+@router.message(Reg.name)
+async def reg_second(message: Message, state: FSMContext):
+    await state.update_data(name=message.text)
+    await state.set_state(Reg.number)
+    await message.answer('Введите ваш номер телефона:')
+
+
+@router.message(Reg.number)
+async def reg_third(message: Message, state: FSMContext):
+    await state.update_data(number=message.text)
+    data = await state.get_data()
+    await message.answer(f'Спасибо, регистрация завершена!\nВаши сохраненные данные:\n1. {data['name']}\n2. {data['number']}')
+    await state.clear()
