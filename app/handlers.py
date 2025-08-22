@@ -29,6 +29,8 @@ async def get_help(message: Message):
 async def answer_hi(message: Message):
     await message.reply(f'Пользователь {message.from_user.first_name} с ID:{message.from_user.id} я рад, что вы нашли меня!',
 	 							reply_markup=kb.main)
+    await message.answer_poll('Что это за бот?', ["рома бот", "Psycho Bot", "Роман Бот", "ромбот"],
+                        type='quiz', correct_option_id=1, is_anonymous=False)
 
 
 @router.message(F.photo)
